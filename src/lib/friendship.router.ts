@@ -52,6 +52,18 @@ export const createFriendsRouter = (ctx: PluginServerContext): Router => {
         fromFirstName: notification.fromFirstName,
         fromLastName: notification.fromLastName
       });
+      // Persists into the notification center, alongside the real-time toast above — the toast is
+      // only seen if the recipient is online right now, this is what they see later.
+      void ctx.notifications
+        .notify({
+          userId: notification.recipientId,
+          type: 'friend.request',
+          sourcePluginId: 'friends',
+          title: 'New friend request',
+          message: `${notification.fromFirstName} ${notification.fromLastName} sent you a friend request`,
+          link: `/profile/${notification.fromUserId}`
+        })
+        .mapErr((error) => console.error('Failed to notify recipient of friend request', error));
     },
     onFriendRequestAccepted: (notification) => {
       const pubsub = createPluginPubSubHandle<FriendsEventRegistry>(ctx.pubsub);
@@ -61,6 +73,16 @@ export const createFriendsRouter = (ctx: PluginServerContext): Router => {
         byFirstName: notification.byFirstName,
         byLastName: notification.byLastName
       });
+      void ctx.notifications
+        .notify({
+          userId: notification.requesterId,
+          type: 'friend.accepted',
+          sourcePluginId: 'friends',
+          title: 'Friend request accepted',
+          message: `${notification.byFirstName} ${notification.byLastName} accepted your friend request`,
+          link: `/profile/${notification.byUserId}`
+        })
+        .mapErr((error) => console.error('Failed to notify requester of accepted friend request', error));
     }
   });
 
