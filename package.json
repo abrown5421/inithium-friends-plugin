@@ -30,13 +30,14 @@
     "dist"
   ],
   "peerDependencies": {
-    "@inithium/plugin-engine": ">=0.0.1",
-    "@inithium/ui": ">=0.0.1",
-    "@inithium/pages": ">=0.0.1",
-    "@inithium/store": ">=0.0.1",
-    "@inithium/pubsub": ">=0.0.1",
-    "@inithium/types": ">=0.0.1",
-    "@inithium/db": ">=0.0.1",
+    "@inithium/plugin-engine": ">=0.1.0",
+    "@inithium/ui": ">=0.1.0",
+    "@inithium/pages": ">=0.1.0",
+    "@inithium/store": ">=0.1.0",
+    "@inithium/pubsub": ">=0.1.0",
+    "@inithium/types": ">=0.1.0",
+    "@inithium/db": ">=0.1.0",
+    "mongodb": "~7.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -51,7 +52,7 @@
     "@types/react": "^19.0.0",
     "@types/node": "^24.0.0",
     "@types/express": "^5.0.0",
-    "@inithium/auth": "*"
+    "@inithium/auth": ">=0.1.0"
   },
   "scripts": {
     "build": "tsup",

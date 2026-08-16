@@ -1,39 +1,25 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "importHelpers": true,
+    "isolatedModules": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2022",
+    "noUncheckedSideEffectImports": false,
     "composite": false,
     "declarationMap": false,
-    "ignoreDeprecations": "6.0",
     "emitDeclarationOnly": false,
+    "ignoreDeprecations": "6.0",
     "types": ["node"],
     "jsx": "react-jsx",
     "lib": ["es2022", "dom", "dom.iterable"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "references": [
-    {
-      "path": "../../packages/auth"
-    },
-    {
-      "path": "../../packages/db"
-    },
-    {
-      "path": "../../packages/types"
-    },
-    {
-      "path": "../../packages/pubsub"
-    },
-    {
-      "path": "../../packages/store"
-    },
-    {
-      "path": "../../packages/pages"
-    },
-    {
-      "path": "../../packages/ui"
-    },
-    {
-      "path": "../../packages/plugin-engine"
-    }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
