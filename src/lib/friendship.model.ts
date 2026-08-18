@@ -35,6 +35,12 @@ export interface FriendSummary extends UserSummary {
   readonly acceptedAt: string;
 }
 
+export interface FriendshipStatusResult {
+  readonly status: FriendshipRelation;
+  readonly friendshipId?: string;
+  readonly acceptedAt?: string;
+}
+
 export type SearchableUserField = 'firstName' | 'lastName' | 'email';
 
 export const SEARCHABLE_USER_FIELD_TO_DB_KEY: Readonly<Record<SearchableUserField, string>> = {
