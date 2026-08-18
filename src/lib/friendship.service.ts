@@ -14,6 +14,7 @@ import {
   Friendship,
   FriendshipRelation,
   FriendshipStatus,
+  FriendshipStatusResult,
   FriendSummary,
   PendingFriendRequest,
   SEARCHABLE_USER_FIELD_TO_DB_KEY,
@@ -112,6 +113,8 @@ export interface FriendshipService {
     field?: SearchableUserField,
     search?: string
   ) => ResultAsync<PaginatedResult<FriendSummary>, AppError>;
+  readonly getFriendshipStatus: (currentUserId: string, targetUserId: string) => ResultAsync<FriendshipStatusResult, AppError>;
+  readonly getRandomFriendsForUser: (userId: string, limit: number) => ResultAsync<readonly FriendSummary[], AppError>;
 }
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -474,6 +477,49 @@ export const createFriendshipService = (db: Db, options: FriendshipServiceOption
       runFriendsAggregation(profileOwnerId, page, limit, field, search, viewerFriendIds)
     );
 
+  const getFriendshipStatus = (currentUserId: string, targetUserId: string): ResultAsync<FriendshipStatusResult, AppError> =>
+    findFriendshipBetween(currentUserId, targetUserId).map((friendship) => {
+      if (!friendship) return { status: 'none' };
+
+      if (friendship.status === 'accepted') {
+        return {
+          status: 'accepted',
+          friendshipId: friendship._id,
+          acceptedAt: (friendship.acceptedAt ?? new Date()).toISOString()
+        };
+      }
+
+      return {
+        status: friendship.requesterId === currentUserId ? 'pending-outgoing' : 'pending-incoming',
+        friendshipId: friendship._id
+      };
+    });
+
+  const getRandomFriendsForUser = (userId: string, limit: number): ResultAsync<readonly FriendSummary[], AppError> => {
+    const pipeline: Document[] = [
+      { $match: { status: 'accepted', $or: [{ requesterId: userId }, { recipientId: userId }] } },
+      { $addFields: { friendUserId: { $cond: [{ $eq: ['$requesterId', userId] }, '$recipientId', '$requesterId'] } } },
+      { $sample: { size: limit } },
+      { $addFields: { friendObjectId: { $toObjectId: '$friendUserId' } } },
+      { $lookup: { from: 'users', localField: 'friendObjectId', foreignField: '_id', as: 'friendUser' } },
+      { $unwind: '$friendUser' }
+    ];
+
+    return ResultAsync.fromPromise(
+      friendships.aggregate<FriendAggregationRow>(pipeline).toArray(),
+      (error) => createDatabaseError('Failed to load random friends', error)
+    ).map((rows) =>
+      rows.map((row) => ({
+        friendshipId: row._id.toString(),
+        userId: row.friendUserId,
+        firstName: row.friendUser.first_name,
+        lastName: row.friendUser.last_name,
+        email: row.friendUser.email,
+        acceptedAt: (row.acceptedAt ?? new Date()).toISOString()
+      }))
+    );
+  };
+
   return {
     sendFriendRequest,
     acceptFriendRequest,
@@ -482,6 +528,8 @@ export const createFriendshipService = (db: Db, options: FriendshipServiceOption
     searchUsers,
     getFriendsForUser,
     getPendingRequests,
-    getMutualFriends
+    getMutualFriends,
+    getFriendshipStatus,
+    getRandomFriendsForUser
   };
 };

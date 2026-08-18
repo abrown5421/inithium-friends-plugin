@@ -126,6 +126,24 @@ export const createFriendsRouter = (ctx: PluginServerContext): Router => {
     );
   });
 
+  router.get('/status/:userId', (req, res) => {
+    const currentUserId = req.user!.id;
+
+    void friendshipService.getFriendshipStatus(currentUserId, req.params.userId).match(
+      (data) => res.status(200).json({ success: true, data }),
+      (error) => sendError(res, error)
+    );
+  });
+
+  router.get('/of/:userId/random', (req, res) => {
+    const limit = Math.min(req.query['limit'] === undefined ? 6 : parseLimit(req.query['limit']), 20);
+
+    void friendshipService.getRandomFriendsForUser(req.params.userId, limit).match(
+      (data) => res.status(200).json({ success: true, data }),
+      (error) => sendError(res, error)
+    );
+  });
+
   router.get('/of/:userId/mutual', (req, res) => {
     const currentUserId = req.user!.id;
     const page = parsePage(req.query['page']);

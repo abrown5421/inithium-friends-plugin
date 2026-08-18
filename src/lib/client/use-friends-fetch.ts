@@ -86,6 +86,54 @@ export const useFriendsPaginatedResource = <TItem,>(
   return { data, isLoading, error, refetch };
 };
 
+export interface FriendsResourceState<T> {
+  readonly data: T | undefined;
+  readonly isLoading: boolean;
+  readonly error: AppError | undefined;
+  readonly refetch: () => void;
+}
+
+export const useFriendsResource = <T,>(path: string | undefined): FriendsResourceState<T> => {
+  const [data, setData] = React.useState<T>();
+  const [isLoading, setIsLoading] = React.useState(Boolean(path));
+  const [error, setError] = React.useState<AppError>();
+  const [refetchToken, setRefetchToken] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!path) {
+      setData(undefined);
+      setIsLoading(false);
+      setError(undefined);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoading(true);
+    setError(undefined);
+
+    requestJson<T>(path).match(
+      (result) => {
+        if (cancelled) return;
+        setData(result);
+        setIsLoading(false);
+      },
+      (requestError) => {
+        if (cancelled) return;
+        setError(requestError);
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [path, refetchToken]);
+
+  const refetch = React.useCallback(() => setRefetchToken((token) => token + 1), []);
+
+  return { data, isLoading, error, refetch };
+};
+
 export interface FriendsMutationState {
   readonly pendingKey: string | undefined;
   readonly execute: (key: string, path: string, method: 'POST' | 'DELETE', body?: unknown) => void;
